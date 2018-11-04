@@ -51,8 +51,8 @@ class MainApplication(ttk.Frame):
 		# page1.rowconfigure(1, weight=1)
 		# page1.columnconfigure(1, weight=1)
 		
-		notes.add(page1, text='Euler\'s')
-		notes.add(page2, text='Heun\'s')
+		notes.add(page1, text='Approximations')
+		notes.add(page2, text='Errors')
 		
 		plot = Plotter(page1)
 	
@@ -66,17 +66,32 @@ class MainApplication(ttk.Frame):
 		input_frame.rowconfigure(4, weight=5)
 		input_frame.columnconfigure(0, weight=1)
 		
-		field = tk.StringVar()
-		entry = ttk.Entry(input_frame, textvariable=field)
-		entry.grid(column=0, row=1, sticky='new')
+		field_x0 = tk.StringVar()
+		label_x0 = ttk.Label(input_frame, text='x0')
+		entry_x0 = ttk.Entry(input_frame, textvariable=field_x0)
 			
-		field1 = tk.StringVar()
-		entry = ttk.Entry(input_frame, textvariable=field1)
-		entry.grid(column=0, row=1, sticky='ew')
+		field_y0 = tk.StringVar()
+		label_y0 = ttk.Label(input_frame, text='y0')
+		entry_y0 = ttk.Entry(input_frame, textvariable=field_y0)
 
-		field2 = tk.StringVar()
-		entry = ttk.Entry(input_frame, textvariable=field2)
-		entry.grid(column=0, row=1, sticky='sew')
+		field_X  = tk.StringVar()
+		label_X  = ttk.Label(input_frame, text='X')
+		entry_X  = ttk.Entry(input_frame, textvariable=field_X)
+
+		field_N  = tk.StringVar()
+		label_N  = ttk.Label(input_frame, text='N')
+		entry_N  = ttk.Entry(input_frame, textvariable=field_N)
+
+		label_x0.grid(column=0, row=1, sticky='new')
+		label_y0.grid(column=0, row=1, sticky='ew')
+		label_X.grid(column=0, row=2, sticky='new')
+		label_N.grid(column=0, row=2, sticky='ew')
+		
+		entry_x0.grid(column=1, row=1, sticky='new')
+		entry_y0.grid(column=1, row=1, sticky='ew')
+		entry_X.grid(column=1, row=2, sticky='new')
+		entry_N.grid(column=1, row=2, sticky='ew')
+
 		
 		for child in input_frame.winfo_children(): child.grid_configure(padx=5, pady=5)
 		
