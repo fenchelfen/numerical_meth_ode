@@ -3,10 +3,10 @@ def heun_new(x, y, h, func):
 			func(x+h,y+h* \
 			func(x,y)))
 
-def heun_compute(x0, y0, h, func, n):
+def heun_compute(x0, y0, h, func, X):
 	x, y = x0, y0
 	pairs = list()
-	for i in range(n+1):
+	while (x <= X):
 		pairs.append((x,y));
 		y = heun_new(x, y, h, func)
 		x += h
