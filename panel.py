@@ -3,6 +3,8 @@ from tkinter import ttk
 import tkinter as tk
 import sys
 
+import time
+
 import plotter
 
 LARGE_FONT= ('Helvetica', 9)
@@ -12,11 +14,12 @@ class MainApplication(ttk.Frame):
 	field_x0: tk.StringVar 
 	field_y0: tk.StringVar
 	field_X : tk.StringVar
+	field_h : tk.StringVar
 	field_N : tk.StringVar
 
 	def __init__(self, master, *args, **kwargs):
 
-		self = ttk.Frame(root, padding='5 5 5 5')
+		super().__init__(root, padding='5 5 5 5')
 		self.grid(column=0, row=0, sticky='nsew')
 
 		frame = ttk.Frame(self, borderwidth=8)
@@ -52,10 +55,11 @@ class MainApplication(ttk.Frame):
 		input_frame.rowconfigure(5, weight=5)
 		input_frame.columnconfigure(0, weight=1)
 		
-		global field_x0, field_y0, field_X, field_N
+		global field_x0, field_y0, field_X, field_h, field_N
 		field_x0 = tk.StringVar()
 		field_y0 = tk.StringVar()
 		field_X  = tk.StringVar()
+		field_h  = tk.StringVar()
 		field_N  = tk.StringVar()
 
 		label_x0 = ttk.Label(input_frame, text='x0')
@@ -67,21 +71,29 @@ class MainApplication(ttk.Frame):
 		label_X  = ttk.Label(input_frame, text='X')
 		entry_X  = ttk.Entry(input_frame, textvariable=field_X)
 
+		label_h = ttk.Label(input_frame, text='h')
+		entry_h = ttk.Entry(input_frame, textvariable=field_h)
+
 		label_N  = ttk.Label(input_frame, text='N')
 		entry_N  = ttk.Entry(input_frame, textvariable=field_N)
 
 		label_x0.grid(column=0, row=1, sticky='new')
 		label_y0.grid(column=0, row=1, sticky='ew')
 		label_X.grid(column=0, row=2, sticky='new')
-		label_N.grid(column=0, row=2, sticky='ew')
+		label_h.grid(column=0, row=2, sticky='ew')
+		label_N.grid(column=0, row=3, sticky='new')
 		
 		entry_x0.grid(column=1, row=1, sticky='new')
 		entry_y0.grid(column=1, row=1, sticky='ew')
 		entry_X.grid(column=1, row=2, sticky='new')
-		entry_N.grid(column=1, row=2, sticky='ew')
+		entry_h.grid(column=1, row=2, sticky='ew')
+		entry_N.grid(column=1, row=3, sticky='new')
 
-		button   = ttk.Button(input_frame, text='Plot')
-		button.grid(column=0, row=3, columnspan=2, sticky='ew')
+		button   = ttk.Button(input_frame, text='Plot', command=lambda: self.redraw(plot))
+		button.grid(column=0, row=4, columnspan=2, sticky='ew')
+
+		self.master.after(200, lambda: entry_x0.focus())
+		self.master.after(200, lambda: root.bind('<Return>', lambda e: self.redraw(plot)))
 
 		for child in input_frame.winfo_children():
 			if isinstance(child, ttk.Label):
@@ -95,6 +107,16 @@ class MainApplication(ttk.Frame):
 		root.rowconfigure(0, weight=1)
 		root.columnconfigure(0, weight=1)
 
+	
+	def redraw(self, plot):
+
+		global field_x0, field_y0, field_X, field_h, field_N
+		x0 = float(field_x0.get())
+		y0 = float(field_y0.get())
+		X  = float(field_X.get())
+		h  = float(field_h.get())
+		N  = float(field_N.get())
+		plot.update_canvas(x0, y0, h, X, N)
 
 root = themed_tk.ThemedTk()
 root.set_theme('clam')
