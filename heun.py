@@ -1,9 +1,11 @@
 def heun_new(x, y, h, func):
+
 	return y+h/2*(func(x,y)+ \
 			func(x+h,y+h* \
 			func(x,y)))
 
 def heun_compute(x0, y0, h, func, X):
+
 	x, y = x0, y0
 	pairs = list()
 	while (x <= X):
