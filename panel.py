@@ -1,39 +1,24 @@
+from ttkthemes import themed_tk
 from tkinter import ttk
 import tkinter as tk
+import sys
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg 
-from matplotlib.figure import Figure
-from math import cos, sin
+import plotter
 
-import heun, euler
-
-class Plotter(FigureCanvasTkAgg):
-
-	def __init__(self, master):
-
-		figure = Figure()
-		self = FigureCanvasTkAgg(figure, master=master)
-
-		axis = figure.add_subplot(111)
-		# data = euler.euler_compute(1, 1, 10, lambda x, y: cos(x)-y, 100)
-		data = euler.euler_compute(0, 1, 0.1, lambda x, y: -2*pow(y, 2) + x*y + pow(x, 2), 125)
-
-		x_list = [pair[0] for pair in data]
-		y_list = [pair[1] for pair in data]
-
-		curve = axis.plot(x_list, y_list)
-		# curve = axis.plot(range(90), [cos(x) for x in range(90)])
-
-		self.get_tk_widget().grid(column=0, row=0, sticky='nsew')
-	
+LARGE_FONT= ('Helvetica', 9)
 
 class MainApplication(ttk.Frame):
-	
+
+	field_x0: tk.StringVar 
+	field_y0: tk.StringVar
+	field_X : tk.StringVar
+	field_N : tk.StringVar
+
 	def __init__(self, master, *args, **kwargs):
 
 		self = ttk.Frame(root, padding='5 5 5 5')
 		self.grid(column=0, row=0, sticky='nsew')
-		
+
 		frame = ttk.Frame(self, borderwidth=8)
 		frame.grid(column=0, row=0, sticky='nsew')
 		frame.rowconfigure(0, weight=1)
@@ -54,7 +39,7 @@ class MainApplication(ttk.Frame):
 		notes.add(page1, text='Approximations')
 		notes.add(page2, text='Errors')
 		
-		plot = Plotter(page1)
+		plot = plotter.Plotter(page1)
 	
 		## Input frame
 		input_frame = ttk.Labelframe(self, text='Parameters')
@@ -64,21 +49,24 @@ class MainApplication(ttk.Frame):
 		input_frame.rowconfigure(2, weight=5)
 		input_frame.rowconfigure(3, weight=5)
 		input_frame.rowconfigure(4, weight=5)
+		input_frame.rowconfigure(5, weight=5)
 		input_frame.columnconfigure(0, weight=1)
 		
+		global field_x0, field_y0, field_X, field_N
 		field_x0 = tk.StringVar()
+		field_y0 = tk.StringVar()
+		field_X  = tk.StringVar()
+		field_N  = tk.StringVar()
+
 		label_x0 = ttk.Label(input_frame, text='x0')
 		entry_x0 = ttk.Entry(input_frame, textvariable=field_x0)
 			
-		field_y0 = tk.StringVar()
 		label_y0 = ttk.Label(input_frame, text='y0')
 		entry_y0 = ttk.Entry(input_frame, textvariable=field_y0)
 
-		field_X  = tk.StringVar()
 		label_X  = ttk.Label(input_frame, text='X')
 		entry_X  = ttk.Entry(input_frame, textvariable=field_X)
 
-		field_N  = tk.StringVar()
 		label_N  = ttk.Label(input_frame, text='N')
 		entry_N  = ttk.Entry(input_frame, textvariable=field_N)
 
@@ -92,8 +80,13 @@ class MainApplication(ttk.Frame):
 		entry_X.grid(column=1, row=2, sticky='new')
 		entry_N.grid(column=1, row=2, sticky='ew')
 
-		
-		for child in input_frame.winfo_children(): child.grid_configure(padx=5, pady=5)
+		button   = ttk.Button(input_frame, text='Plot')
+		button.grid(column=0, row=3, columnspan=2, sticky='ew')
+
+		for child in input_frame.winfo_children():
+			if isinstance(child, ttk.Label):
+				child.config(font=LARGE_FONT)
+			child.grid_configure(padx=5, pady=5)
 		
 		frame.rowconfigure(0, weight=1)
 		frame.columnconfigure(0, weight=1)
@@ -103,7 +96,11 @@ class MainApplication(ttk.Frame):
 		root.columnconfigure(0, weight=1)
 
 
-root = tk.Tk()
+root = themed_tk.ThemedTk()
+root.set_theme('clam')
+style = ttk.Style()
+# style.configure('.', font=LARGE_FONT)
+
 root.title('Numerical methods')
 root.minsize(800, 600)
 # root.maxsize(800, 600)
