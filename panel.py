@@ -1,9 +1,8 @@
+from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 from ttkthemes import themed_tk
 from tkinter import ttk
 import tkinter as tk
 import sys
-
-import time
 
 import plotter
 
@@ -29,20 +28,26 @@ class MainApplication(ttk.Frame):
 		notes = ttk.Notebook(frame)
 		notes.grid(column=0, row=0, sticky='nsew')
 		notes.rowconfigure(0, weight=1)
-		# notes.rowconfigure(1, weight=1)
 		
 		page1 = ttk.Frame(notes)
 		page2 = ttk.Frame(notes)
 		
-		page1.rowconfigure(0, weight=1)
-		page1.columnconfigure(0, weight=1)
-		# page1.rowconfigure(1, weight=1)
-		# page1.columnconfigure(1, weight=1)
+		# page1.rowconfigure(0, weight=1)
+		# page1.columnconfigure(0, weight=1)
 		
+		page2.rowconfigure(0, weight=1)
+		page2.columnconfigure(0, weight=1)
+
 		notes.add(page1, text='Approximations')
 		notes.add(page2, text='Errors')
 		
-		plot = plotter.Plotter(page1)
+		plot1 = plotter.Plotter(page1)
+		plot2 = plotter.Plotter(page2)
+
+		toolbar1 = NavigationToolbar2TkAgg(plot1, page1)
+		toolbar2 = NavigationToolbar2TkAgg(plot2, page2)
+		toolbar1.update()
+		toolbar2.update()
 	
 		## Input frame
 		input_frame = ttk.Labelframe(self, text='Parameters')
@@ -89,11 +94,8 @@ class MainApplication(ttk.Frame):
 		entry_h.grid(column=1, row=2, sticky='ew')
 		entry_N.grid(column=1, row=3, sticky='new')
 
-		button   = ttk.Button(input_frame, text='Plot', command=lambda: self.redraw(plot))
+		button = ttk.Button(input_frame, text='Plot', command=lambda: self.redraw(plot1, plot2))
 		button.grid(column=0, row=4, columnspan=2, sticky='ew')
-
-		self.master.after(200, lambda: entry_x0.focus())
-		self.master.after(200, lambda: root.bind('<Return>', lambda e: self.redraw(plot)))
 
 		for child in input_frame.winfo_children():
 			if isinstance(child, ttk.Label):
@@ -107,16 +109,21 @@ class MainApplication(ttk.Frame):
 		root.rowconfigure(0, weight=1)
 		root.columnconfigure(0, weight=1)
 
+		self.master.after(200, lambda: entry_x0.focus())
+		self.master.after(200, lambda: root.bind('<Return>', lambda e: self.redraw(plot1, plot2)))
+
 	
-	def redraw(self, plot):
+	def redraw(self, plot1, plot2):
 
 		global field_x0, field_y0, field_X, field_h, field_N
 		x0 = float(field_x0.get())
 		y0 = float(field_y0.get())
 		X  = float(field_X.get())
 		h  = float(field_h.get())
-		N  = float(field_N.get())
-		plot.update_canvas(x0, y0, h, X, N)
+		N  = int(field_N.get())
+		plot1.update_canvas(x0, y0, h, X, N, True)
+		plot2.update_canvas(x0, y0, h, X, N, False)
+
 
 root = themed_tk.ThemedTk()
 root.set_theme('clam')
@@ -128,5 +135,4 @@ root.minsize(800, 600)
 # root.maxsize(800, 600)
 root.geometry('+5+30')
 
-MainApplication(root)
-root.mainloop()
+MainApplication(root).mainloop()
