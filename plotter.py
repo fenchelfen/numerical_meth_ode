@@ -5,7 +5,7 @@ from numpy import arange
 from math import cos, sin, exp
 import tkinter as tk
 
-import heun, euler
+import heun, euler, rk
 
 style.use('seaborn-whitegrid')
 
@@ -19,20 +19,24 @@ class Plotter(FigureCanvasTkAgg):
 		# self.get_tk_widget().grid(column=0, row=0, sticky='nsew')
 		self.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-	def update_canvas(self, x0, y0, h, X, N, flag):
+	def update_canvas(self, x0, y0, h, X, n0, N, flag):
 
 		self.x0 = x0
 		self.y0 = y0
 		self.h  = h
 		self.X  = X
 		self.N  = N
+		self.n0 = n0
 
 		self.axes.clear()
 		
-		if (flag):
-			self.plot_approx()
-		else:
-			self.plot_errors()
+		plots = {
+			0: self.plot_approx,
+			1: self.plot_local,
+			2: self.plot_total
+		}
+
+		plots.get(flag, 'No such plot')()
 
 		self.axes.legend(fancybox=False)
 		self.draw_idle()
@@ -41,14 +45,15 @@ class Plotter(FigureCanvasTkAgg):
 		
 		h = self.h if h is None else h
 
-		data_euler = euler.euler_compute(self.x0, self.y0, h, lambda x, y: 3*x*pow(exp(1), x) - y*(1 - 1/x), self.X)
-		data_heun  =   heun.heun_compute(self.x0, self.y0, h, lambda x, y: 3*x*pow(exp(1), x) - y*(1 - 1/x), self.X)
+		data_euler = euler.euler_compute(self.x0, self.y0, h, lambda x, y: 3*x*exp(x) - y*(1 - 1/x), self.X)
+		data_heun  =   heun.heun_compute(self.x0, self.y0, h, lambda x, y: 3*x*exp(x) - y*(1 - 1/x), self.X)
+		data_rk    =       rk.rk_compute(self.x0, self.y0, h, lambda x, y: 3*x*exp(x) - y*(1 - 1/x), self.X)
 
-		return data_euler, data_heun
+		return data_euler, data_heun, data_rk
 
 	def compute_exact(self, x):
 		
-		return 3/2*exp(-x)*x*(exp(2) + exp(2*x))
+		return 3/2*exp(-x)*x*(exp(2*x) - exp(2))
 	
 	def compute_local(self, data, h=None):
 
@@ -64,40 +69,47 @@ class Plotter(FigureCanvasTkAgg):
 
 		return x_list, y_list
 
-	def plot_errors(self):
+	def plot_local(self):
 
-		data_euler, data_heun = self.compute_approx_data()
+		data_euler, data_heun, data_rk = self.compute_approx_data()
 
 		# local errors
 		euler = self.compute_local(data_euler)
-		heun = self.compute_local(data_heun)
-		self.axes.plot(euler[0], euler[1], color='y', label='Euler local', visible=True, linewidth=1.5)
-		self.axes.plot(heun[0], heun[1], color='r', label='Heun local', visible=True, linewidth=1.5)
+		heun  = self.compute_local(data_heun)
+		rk    = self.compute_local(data_rk)
+		self.axes.plot(euler[0], euler[1], color='y', marker=',', label='Euler local', visible=True, linewidth=1.5)
+		self.axes.plot(heun[0], heun[1], color='r', marker=',', label='Heun local', visible=True, linewidth=1.5)
+		self.axes.plot(rk[0], rk[1], color='m', marker=',', label='Runge-Kutta local', visible=True, linewidth=1.5)
 
-		# euler global
+	def plot_total(self):
+
+		# total errors
 		y_euler = []
 		y_heun  = []
-		x_list = list(range(1, self.N))
+		y_rk    = []
+		x_list = list(range(self.n0, self.N+1))
 		for i in x_list:
 			step = abs(self.X - self.x0) / i
-			data_euler, data_heun = self.compute_approx_data(step)
+			data_euler, data_heun, data_rk = self.compute_approx_data(step)
 			print(max(self.compute_local(data_euler, step)[1]))
 			y_euler.append(max(self.compute_local(data_euler, step)[1]))
 			y_heun.append(max(self.compute_local(data_heun, step)[1]))
+			y_rk.append(max(self.compute_local(data_rk, step)[1]))
 
-		self.axes.plot(x_list, y_euler, 'y--', marker='.', label='Euler global', visible=True, linewidth=1)
-		self.axes.plot(x_list, y_heun, 'r--', marker='.', label='Heun global', visible=True, linewidth=1)
+		self.axes.plot(x_list, y_euler, 'y--', marker='.', label='Euler total', visible=True, linewidth=1)
+		self.axes.plot(x_list, y_heun, 'r--', marker='.', label='Heun total', visible=True, linewidth=1)
+		self.axes.plot(x_list, y_rk, 'm--', marker='.', label='Runge-Kutta total', visible=True, linewidth=1)
 
 	def plot_approx(self):
 
-		print('x, y, h, X, N = ', self.x0, self.y0, self.h, self.X, self.N)
+		print('x, y, h, X, N, n0 = ', self.x0, self.y0, self.h, self.X, self.N, self.n0)
 
 		# comput exact x, y
 		x_exact = arange(self.x0, self.X+0.01, self.h)
-		y_exact = [3/2*exp(-x)*x*(exp(2) + exp(2*x)) for x in x_exact]
+		y_exact = [self.compute_exact(x) for x in x_exact]
 		self.axes.plot(x_exact, y_exact, color='c', label='Exact', visible=True, marker='.')
 
-		data_euler, data_heun = self.compute_approx_data()
+		data_euler, data_heun, data_rk = self.compute_approx_data()
  
  		# euler approx
 		x_list = [pair[0] for pair in data_euler]
@@ -109,3 +121,7 @@ class Plotter(FigureCanvasTkAgg):
 		y_list = [pair[1] for pair in data_heun]
 		self.axes.plot(x_list, y_list, color='r', label='Heun', visible=True, linewidth=1)
 
+		# runge-kutta approx
+		x_list = [pair[0] for pair in data_rk]
+		y_list = [pair[1] for pair in data_rk]
+		self.axes.plot(x_list, y_list, color='m', label='Runge-Kutta', visible=True, linewidth=1)
