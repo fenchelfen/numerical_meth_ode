@@ -77,6 +77,7 @@ class Plotter(FigureCanvasTkAgg):
 		euler = self.compute_local(data_euler)
 		heun  = self.compute_local(data_heun)
 		rk    = self.compute_local(data_rk)
+
 		self.axes.plot(euler[0], euler[1], color='y', marker=',', label='Euler local', visible=True, linewidth=1.5)
 		self.axes.plot(heun[0], heun[1], color='r', marker=',', label='Heun local', visible=True, linewidth=1.5)
 		self.axes.plot(rk[0], rk[1], color='m', marker=',', label='Runge-Kutta local', visible=True, linewidth=1.5)
