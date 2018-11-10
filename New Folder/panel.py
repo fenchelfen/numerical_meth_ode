@@ -129,9 +129,10 @@ class MainApplication(ttk.Frame):
         plot3.update_canvas(x0, y0, h, X, n0, N, 2)
 
 
-root = themed_tk.ThemedTk()
-root.set_theme('clam')
-style = ttk.Style()
+root = Tk()
+# root = themed_tk.ThemedTk()
+# root.set_theme('clam')
+# style = ttk.Style()
 # style.configure('.', font=LARGE_FONT)
 
 root.title('Numerical methods')
