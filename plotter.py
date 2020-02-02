@@ -4,6 +4,7 @@ from matplotlib import style
 from numpy import arange
 from math import cos, sin, exp
 import tkinter as tk
+import numpy as np
 
 import heun, euler, rk
 
@@ -32,9 +33,10 @@ class Plotter(FigureCanvasTkAgg):
         self.update_const()
 
         plots = {
-            0: self.plot_approx,
-            1: self.plot_local,
-            2: self.plot_total
+            0: self.plot_rotations,
+            1: self.plot_approx,
+            2: self.plot_local,
+            3: self.plot_total
         }
 
         plots.get(flag, 'No such plot')()
@@ -99,6 +101,31 @@ class Plotter(FigureCanvasTkAgg):
         self.axes.plot(x_list, y_euler, 'y--', marker='.', label='Euler total', visible=True, linewidth=1)
         self.axes.plot(x_list, y_heun, 'r--', marker='.', label='Heun total', visible=True, linewidth=1)
         self.axes.plot(x_list, y_rk, 'm--', marker='.', label='Runge-Kutta total', visible=True, linewidth=1)
+
+    def plot_rotations(self):
+        def colorizer(x, y):
+            """
+            Map x-y coordinates to a rgb color
+            """
+            r = min(1, 1 - y / 3)
+            g = min(1, 1 + y / 3)
+            b = 1 / 4 + x / 16
+            return r, g, b
+
+        xvals = np.linspace(-4, 4, 9)
+        yvals = np.linspace(-3, 3, 7)
+
+        xygrid = np.column_stack([[x, y] for x in xvals for y in yvals])
+        r_matrix = np.column_stack([[2, 1], [-1, 1]])
+        colors = list(map(colorizer, xygrid[0], xygrid[1]))
+        uvgrid = r_matrix @ xygrid
+        # self.axes.figure(figsize=(4, 4))
+        self.axes.scatter(xygrid[0], xygrid[1], s=36, c=colors)
+        self.axes.scatter(uvgrid[0], uvgrid[1], s=36, c=colors)
+
+        for each in zip(xygrid[0], xygrid[1]):
+            for another in zip(xygrid[0], xygrid[1]):
+                self.axes.plot(each, another, 'ro-')
 
     def plot_approx(self):
         print('x, y, h, X, N, n0 = ', self.x0, self.y0, self.h, self.X, self.N, self.n0)
