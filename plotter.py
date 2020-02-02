@@ -103,7 +103,7 @@ class Plotter(FigureCanvasTkAgg):
     def plot_approx(self):
         print('x, y, h, X, N, n0 = ', self.x0, self.y0, self.h, self.X, self.N, self.n0)
 
-        # comput exact x, y
+        # compute exact x, y
         x_exact = arange(self.x0, self.X + 0.01, self.h)
         y_exact = [self.compute_exact(x) for x in x_exact]
         self.axes.plot(x_exact, y_exact, color='c', label='Exact', visible=True, marker='.')

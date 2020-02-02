@@ -8,6 +8,12 @@ import plotter
 
 LARGE_FONT = ('Helvetica', 9)
 
+PAGES_META = [
+    ('Approximations',),
+    ('Local',),
+    ('Total',)
+]
+
 
 class MainApplication(ttk.Frame):
 
@@ -24,24 +30,38 @@ class MainApplication(ttk.Frame):
         notes.grid(column=0, row=0, sticky='nsew')
         notes.rowconfigure(0, weight=1)
 
-        page1 = ttk.Frame(notes)
-        page2 = ttk.Frame(notes)
-        page3 = ttk.Frame(notes)
+        pages = [ttk.Frame(notes) for _ in range(len(PAGES_META))]
 
-        notes.add(page1, text='Approximations')
-        notes.add(page2, text='Local')
-        notes.add(page3, text='Total')
+        # page1 = ttk.Frame(notes)
+        # page2 = ttk.Frame(notes)
+        # page3 = ttk.Frame(notes)
 
-        plot1 = plotter.Plotter(page1)
-        plot2 = plotter.Plotter(page2)
-        plot3 = plotter.Plotter(page3)
+        for meta, page in zip(PAGES_META, pages):
+            notes.add(page, text=meta[0])
 
-        toolbar1 = NavigationToolbar2TkAgg(plot1, page1)
-        toolbar2 = NavigationToolbar2TkAgg(plot2, page2)
-        toolbar3 = NavigationToolbar2TkAgg(plot3, page3)
-        toolbar1.update()
-        toolbar2.update()
-        toolbar3.update()
+        # notes.add(pages[0], text='Approximations')
+        # notes.add(pages[1], text='Local')
+        # notes.add(pages[2], text='Total')
+
+        plots = []
+        for each in pages:
+            plots.append(plotter.Plotter(each))
+
+        # plot1 = plotter.Plotter(page1)
+        # plot2 = plotter.Plotter(page2)
+        # plot3 = plotter.Plotter(page3)
+
+        toolbars = []
+        for tup in zip(plots, pages):
+            toolbars.append(NavigationToolbar2TkAgg(tup[0], tup[1]))
+            toolbars[-1].update()
+
+        # toolbar1 = NavigationToolbar2TkAgg(plot1, page1)
+        # toolbar2 = NavigationToolbar2TkAgg(plot2, page2)
+        # toolbar3 = NavigationToolbar2TkAgg(plot3, page3)
+        # toolbar1.update()
+        # toolbar2.update()
+        # toolbar3.update()
 
         # Input frame
         input_frame = ttk.Labelframe(self, text='Parameters')
@@ -94,7 +114,7 @@ class MainApplication(ttk.Frame):
         entry_n0.grid(column=1, row=3, sticky='new')
         entry_N.grid(column=1, row=3, sticky='ew')
 
-        button = ttk.Button(input_frame, text='Plot', command=lambda: self.redraw([plot1, plot2, plot3]))
+        button = ttk.Button(input_frame, text='Plot', command=lambda: self.redraw(plots))
         button.grid(column=0, row=4, columnspan=2, sticky='ew')
 
         for child in input_frame.winfo_children():
@@ -110,12 +130,12 @@ class MainApplication(ttk.Frame):
         root.columnconfigure(0, weight=1)
 
         self.master.after(200, lambda: entry_x0.focus())
-        self.master.after(200, lambda: root.bind('<Return>', lambda e: self.redraw([plot1, plot2, plot3])))
+        self.master.after(200, lambda: root.bind('<Return>', lambda e: self.redraw(plots)))
 
         button.invoke()
 
     @staticmethod
-    def redraw(self, plots):
+    def redraw(plots):
 
         global field_x0, field_y0, field_X, field_h, field_N, field_n0
         x0 = float(field_x0.get())
